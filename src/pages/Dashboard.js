@@ -4,7 +4,7 @@ import { DTable } from '../components/DTable'
 import { Layout } from '../components/Layout'
 import MyForm from '../components/MyForm'
 
-export const Dashboard = () => {
+export const Dashboard = ({user}) => {
     const [list, setList] = useState([])
     const addTransaction = (data) =>{
       setList([
@@ -21,7 +21,7 @@ export const Dashboard = () => {
       
     }
   return (
-    <Layout>
+    <Layout user ={user}>
       <Container>
         <Row>
           <Col>

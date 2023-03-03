@@ -4,6 +4,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import { Link } from 'react-router-dom';
 
 export const Header =() => {
+
   return (
     <Navbar bg="info" expand="md">
       <Container>
@@ -11,8 +12,11 @@ export const Header =() => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
+            <>
             <Link href="/" className=''>Sign in</Link>
             <Link href="register">Sign up</Link>
+            </>
+            <Link href="/">Log out</Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
