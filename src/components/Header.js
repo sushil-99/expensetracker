@@ -12,11 +12,20 @@ export const Header =() => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
+            {/* {!user?.fName ? ( */}
             <>
-            <Link href="/" className=''>Sign in</Link>
-            <Link href="register">Sign up</Link>
+              <Link to="/" className="nav-link">
+                Login
+              </Link>
+              <Link to="/register" className="nav-link">
+                Sign Up
+              </Link>
             </>
-            <Link href="/">Log out</Link>
+            {/* ) : ( */}
+            <Link to="/" className="nav-link">
+              Log Out
+            </Link>
+            {/* )} */}
           </Nav>
         </Navbar.Collapse>
       </Container>
