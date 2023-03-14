@@ -3,13 +3,16 @@ import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CustomInput } from "../components/CustomInput";
-
+import { setUser } from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
 import { Layout } from "../components/Layout";
 
 export const Login = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [fromDt, setFormDt] = useState({});
+  const [userInfo] = useState({});
 
   const inputs = [
     {
@@ -39,7 +42,6 @@ export const Login = () => {
 
   const handleOnSubmit = (e) => {
     e.preventDefault();
-    console.log(fromDt);
 
     const usersStr = localStorage.getItem("users");
     const userList = usersStr ? JSON.parse(usersStr) : [];
@@ -48,11 +50,19 @@ export const Login = () => {
       return email === fromDt.email && password === fromDt.password;
     });
 
-    user?.email ? navigate("/dashboard") : toast.error("Invalid login details");
+    if (user?.email) {
+      dispatch(setUser(user));
+      navigate("/dashboard");
+      sessionStorage.setItem("logedInUser", JSON.stringify(user));
+    } else {
+      toast.error("Invalid login details");
+    }
   };
 
+  console.log(userInfo);
+
   return (
-    <Layout>
+    <Layout user={userInfo}>
       <div className="w-50 m-auto">
         <Form
           onSubmit={handleOnSubmit}
