@@ -1,58 +1,105 @@
-import { useState } from 'react';
-import { Button } from 'react-bootstrap';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
+import { addDoc, collection } from "firebase/firestore";
+import { useState } from "react";
+import { Button } from "react-bootstrap";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
+import Row from "react-bootstrap/Row";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { db } from "../firebase/firebase-config";
+import {
+  getTransaction,
+  postTransaction,
+} from "../redux/transaction/transAction";
 
-const initailState = {
-    type: "",
-    title: "",
-    amount: "",
-    date: ""
-}
+const initialState = {
+  type: "",
+  title: "",
+  amount: "",
+  date: "",
+};
+export const MyForm = ({ addTransaction }) => {
+  const dispatch = useDispatch();
+  const [formDt, setFormDt] = useState(initialState);
 
-export const MyForm = ({transaction}) => {
-    const [formData, setFormData] = useState({initailState})
+  const { userInfo } = useSelector((state) => state.user);
 
-    const handleInput =(e) =>{
-        const {name, value} = e.target
-        setFormData({
-            ...formData, [name]:value
-        })   
+  const handleOnChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormDt({
+      ...formDt,
+      [name]: value,
+    });
+  };
+
+  const handleOnSubmit = async (e) => {
+    e.preventDefault();
+
+    // TODO
+    // 1. send datat to fire store
+    const obj = { ...formDt, userId: userInfo.uid, createAt: Date.now() };
+
+    // dispatch(postTransaction(obj));
+    const docRef = await addDoc(collection(db, "transactions"), obj);
+
+    if (docRef?.id) {
+      setFormDt(initialState);
+      dispatch(getTransaction(userInfo.uid));
+      // 2. if success on create transact, fetch data from store and mount on the redux
+      return toast.success("The transaction has been added");
     }
+  };
 
-    const handleOnSubmit = (e) =>{
-        e.preventDefault()
-        transaction(formData)
-        setFormData(initailState)
-    }
-
-    console.log(formData)
-    return (
-        <Form onSubmit={handleOnSubmit} className='border p-2 rounded shadow-lg'>
-            <Row className='gap-2'>
-                <Col md = {2}>
-                    <Form.Select onChange={handleInput} name="type" required defaultValue={formData.type}>
-                        <option>Type...</option>
-                        <option value="income">Income</option>
-                        <option value="expenses">Expenses</option>
-                    </Form.Select>
-                </Col>
-                <Col md = {3}>
-                    <Form.Control onChange={handleInput} name="title" placeholder="Transaction name" required value={formData.title}/>
-                </Col>
-                <Col md = {2}>
-                    <Form.Control onChange={handleInput} type="number" name="amount" placeholder="Amount" required value={formData.amount}/>
-                </Col>
-                <Col md = {3}>
-                    <Form.Control onChange={handleInput} type="date" name="date" required/>
-                </Col>
-                <Col md = {2}>
-                    <Button type="submit"><i class="fa-solid fa-plus"></i> Add</Button>
-                </Col>
-            </Row>
-        </Form>
-    );
-}
-
-export default MyForm;
+  return (
+    <Form onSubmit={handleOnSubmit} className="border p-3 rounded shadow-lg">
+      <Row className="gap-2">
+        <Col md={2}>
+          <Form.Select
+            name="type"
+            onChange={handleOnChange}
+            required
+            defaultValue={formDt.type}
+          >
+            <option value="">Type... </option>
+            <option value="income">Income</option>
+            <option value="expenses">Expenses</option>
+          </Form.Select>
+        </Col>
+        <Col md={4}>
+          <Form.Control
+            name="title"
+            placeholder="Shopping"
+            onChange={handleOnChange}
+            required
+            value={formDt.title}
+          />
+        </Col>
+        <Col md={2}>
+          <Form.Control
+            name="amount"
+            value={formDt.amount}
+            type="number"
+            placeholder="233"
+            onChange={handleOnChange}
+            required
+          />
+        </Col>
+        <Col md={2}>
+          <Form.Control
+            type="date"
+            name="date"
+            value={formDt.date}
+            onChange={handleOnChange}
+            required
+          />
+        </Col>
+        <Col md={2}>
+          <Button type="submit">
+            <i className="fa-solid fa-plus"></i> Add
+          </Button>
+        </Col>
+      </Row>
+    </Form>
+  );
+};

@@ -4,10 +4,14 @@ import { toast } from "react-toastify";
 import { CustomInput } from "../components/CustomInput";
 
 import { Layout } from "../components/Layout";
-import { rendomStrGenerator } from "../utils";
 
-//falsy: false, 0, "", undefined, null
-//truthy : ture, 123, "lsfjlsdj", {} , []
+import { auth, db } from "../firebase/firebase-config";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+
+import { doc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/user/userSlice";
 
 const initialState = {
   fName: "",
@@ -18,6 +22,9 @@ const initialState = {
 };
 
 export const Registration = () => {
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
   const [frm, setFrm] = useState(initialState);
   const [error, setError] = useState("");
 
@@ -41,7 +48,7 @@ export const Registration = () => {
     });
   };
 
-  const handleOnSubmit = (e) => {
+  const handleOnSubmit = async (e) => {
     e.preventDefault();
 
     const { confirmPassword, ...rest } = frm;
@@ -50,25 +57,63 @@ export const Registration = () => {
       return toast.error("Password do not match!");
     }
 
-    //reading data from local storage
-    const oldUsersStr = localStorage.getItem("users");
-    const oldUsers = oldUsersStr ? JSON.parse(oldUsersStr) : [];
+    try {
+      //create new user in the database
+      const responsePromise = createUserWithEmailAndPassword(
+        auth,
+        frm.email,
+        frm.password
+      );
 
-    //let's check if user already exist for the given email
+      toast.promise(responsePromise, {
+        pending: "Please wait ....",
+      });
 
-    const isExist = oldUsers.find(({ email }) => email === rest.email);
+      const { user } = await responsePromise;
+      if (user?.uid) {
+        //updating user displayName
+        updateProfile(user, {
+          displayName: frm.fName,
+        });
 
-    if (isExist) {
-      return toast.error("This email already have an account");
+        // adding recently created user in the firestore database
+        const userObj = {
+          fName: frm.fName,
+          lName: frm.lName,
+          email: frm.email,
+        };
+        await setDoc(doc(db, "users", user.uid), userObj);
+
+        toast.success("Your account is created, now redirecting to Dashboard");
+
+        dispatch(
+          setUser({
+            ...userObj,
+            uid: user.uid,
+          })
+        );
+        // redirect user automatically to dashboard in 3 seconds
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 3000);
+      }
+    } catch (error) {
+      let msg = error.message;
+      if (msg.includes("auth/email-already-in-use")) {
+        msg = "Email is already used by another user.";
+      }
+      toast.error(msg);
     }
 
-    //storing in local storage
-    localStorage.setItem(
-      "users",
-      JSON.stringify([...oldUsers, { ...rest, id: rendomStrGenerator(6) }])
-    );
-    toast.success("You account has been created, you may login now");
-    setFrm(initialState);
+    // .then(async (userCredentials) => {
+    //   const user = userCredentials.user;
+
+    //   console.log(user);
+    // })
+    // .catch((error) => {
+    //   console.log(error);
+    //   toast.error(error.message);
+    // });
   };
 
   const inputs = [
