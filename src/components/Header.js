@@ -24,7 +24,8 @@ export const Header = () => {
       <Container>
         <Navbar.Brand href="#home">Finance Tracker</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <div>Welcome back {userInfo?.displayName}</div>
+        {userInfo?.uid && <div>Welcome back {userInfo?.displayName}</div>}
+        
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
             {!userInfo?.uid ? (

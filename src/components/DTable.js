@@ -1,7 +1,8 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
 import React, { useCallback, useEffect } from "react";
 import { Button, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { db } from "../firebase/firebase-config";
 import { getTransaction } from "../redux/transaction/transAction";
 
@@ -22,6 +23,19 @@ export const DTable = () => {
     }
   }, 0);
   console.log(total);
+
+  const handleOnDelete = async(id) =>{
+    if(window.confirm("Are you sure you want to delete this transaction")){
+      try {
+        await deleteDoc(doc(db, "transaction", id))
+        toast.success("Transaction has been deleted")
+        dispatch(getTransaction(userInfo.uid))
+      } catch (error) {
+        toast.error(error.message)
+      }
+    
+  }
+}
   return (
     <Table striped bordered hover className="mt-5">
       <thead>
@@ -48,7 +62,7 @@ export const DTable = () => {
             </td>
 
             <td>
-              <Button variant="danger">Delete</Button>
+              <Button onClick={handleOnDelete(item.id)} variant="danger"><i class="fa-solid fa-trash"></i></Button>
             </td>
           </tr>
         ))}

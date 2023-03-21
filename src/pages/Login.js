@@ -6,7 +6,7 @@ import { CustomInput } from "../components/CustomInput";
 import { setUser } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Layout } from "../components/Layout";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebase-config";
 
 export const Login = () => {
@@ -16,9 +16,13 @@ export const Login = () => {
   const [fromDt, setFormDt] = useState({});
   const { userInfo } = useSelector((state) => state.user);
 
+  onAuthStateChanged(auth, (user)=>{
+    // dispatch(setUser(user))
+  })
+
   useEffect(() => {
     userInfo?.uid && navigate("/dashboard");
-  }, [userInfo]);
+  }, [userInfo?.uid]);
 
   const inputs = [
     {
@@ -70,12 +74,17 @@ export const Login = () => {
           email: user.email,
           displayName: user.displayName,
         };
+       
+        console.log(userobj)
 
         setTimeout(() => {
+          console.log("sending...")
           dispatch(setUser(userobj));
         }, 2000);
         return toast.success("Logged in successfully, Redirecting now");
       }
+      toast.error("Invalid login");
+     
     } catch (error) {
       let msg = error.message;
       if (error.message.includes("(auth/wrong-password)")) {
