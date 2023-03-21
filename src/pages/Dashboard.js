@@ -9,10 +9,10 @@ export const Dashboard = () => {
   const [user, setUser] = useState({});
 
   useEffect(() => {
-    // const userStr = sessionStorage.getItem("logedInUser");
-    // if (userStr) {
-    //   setUser(JSON.parse(userStr));
-    // }
+    const userStr = sessionStorage.getItem("logedInUser");
+    if (userStr) {
+      setUser(JSON.parse(userStr));
+    }
 
     //pars json
     //set stat
