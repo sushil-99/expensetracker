@@ -1,21 +1,29 @@
-import React from 'react'
-import { Button, Table } from 'react-bootstrap'
+import { collection, getDocs, query, where } from "firebase/firestore";
+import React, { useCallback, useEffect } from "react";
+import { Button, Table } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { db } from "../firebase/firebase-config";
+import { getTransaction } from "../redux/transaction/transAction";
 
-export const DTable = ({ list, handleDelete }) => {
-  // console.log(list)
-  const total = list.reduce((acc, item) =>{
-    if(item.type === "income") {
-      return acc + +item.amount
+export const DTable = () => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.user);
+  const { trans } = useSelector((state) => state.transaction);
+
+  useEffect(() => {
+    dispatch(getTransaction(userInfo.uid));
+  }, [dispatch]);
+
+  const total = trans.reduce((acc, item) => {
+    if (item.type === "income") {
+      return acc + +item.amount;
+    } else {
+      return acc - +item.amount;
     }
-    else if(item.type === "expenses") {
-      return acc - +item.amount
-    }
-  }, 0)
-
-  
-
+  }, 0);
+  console.log(total);
   return (
-    <Table striped bordered hover className='mt-5'>
+    <Table striped bordered hover className="mt-5">
       <thead>
         <tr>
           <th>#</th>
@@ -27,34 +35,29 @@ export const DTable = ({ list, handleDelete }) => {
         </tr>
       </thead>
       <tbody>
-        {
-          list.map((item, i) =>
-            <tr>
-              <td>{i + 1}</td>
-              <td>{item.date}</td>
-              <td>{item.title}</td>
-              <td className='text-success fw-bolder'>{item.type === "income" && item.amount}</td>
-              <td className='text-danger fw-bolder'>{item.type === "expenses" && "-" + item.amount}</td>
-              {/* {item.type === "income" ? (
-              <>
-                <td className='text-success'>{item.amount}</td>
-                <td></td>
-              </>) : (
-                <>
-                  <td></td>
-                  <td className='text-danger'>{item.amount}</td>
-                </>
-              )} */}
-              <td><Button onClick= {() =>handleDelete(i)} variant="danger">Delete</Button></td>
-            </tr>
+        {trans.map((item, i) => (
+          <tr key={i}>
+            <td>{i + 1}</td>
+            <td>{item.date}</td>
+            <td>{item.title}</td>
+            <td className="text-success fw-bolder">
+              {item.type === "income" && item.amount}
+            </td>
+            <td className="text-danger fw-bolder">
+              {item.type === "expenses" && "-" + item.amount}
+            </td>
 
-          )
-        }
-        <tr className='fw-bolder fs-3'>
+            <td>
+              <Button variant="danger">Delete</Button>
+            </td>
+          </tr>
+        ))}
+
+        <tr className="fw-bolder fs-3">
           <td colSpan={5}>Total</td>
           <td>{total}</td>
         </tr>
       </tbody>
     </Table>
-  )
-}
+  );
+};
